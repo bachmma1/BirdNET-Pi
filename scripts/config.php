@@ -521,7 +521,7 @@ https://discordapp.com/api/webhooks/{WebhookID}/{WebhookToken}
       <dt>$overlap</dt>
       <dd>Overlap set in "Advanced Settings"</dd>
       <dt>$flickrimage</dt>
-      <dd>A preview image of the detected species from Flickr. Set your API key below.</dd>
+      <dd>A preview image of the detected species from Wikipedia.</dd>
       <dt>$reason</dt>
       <dd>The reason a notification was sent</dd>
       </dl>
