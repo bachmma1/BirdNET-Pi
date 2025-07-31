@@ -221,7 +221,7 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true"  ) {
       if ($key !== false) {
         $image = $_SESSION['images'][$key];
       } else {
-        $wiki_cache = $wiki->get_image($mostrecent['Sci_Name']);
+        $wiki_cache = $wiki->get_image($todaytable['Sci_Name']);
         array_push($_SESSION["images"], array($comname, $wiki_cache["image_url"], $wiki_cache["title"], $wiki_cache["photos_url"], $wiki_cache["author_url"], $wiki_cache["license_url"]));
         $image = $_SESSION['images'][count($_SESSION['images']) - 1];
       }
