@@ -90,12 +90,12 @@ if(isset($_GET['ajax_detections']) && $_GET['ajax_detections'] == "true" && isse
         }
       
         // Check if we already have this species in the session
-        $key = array_search($comname, array_column($_SESSION['images'], 0));
+        $key = array_search($sciname, array_column($_SESSION['images'], 0));
         if ($key !== false) {
           $image = $_SESSION['images'][$key];
         } else {
           $wiki_cache = $wiki->get_image($mostrecent['Sci_Name']);
-          array_push($_SESSION["images"], array($comname, $wiki_cache["image_url"], $wiki_cache["title"], $wiki_cache["photos_url"], $wiki_cache["author_url"], $wiki_cache["license_url"]));
+          array_push($_SESSION["images"], array($sciname, $wiki_cache["image_url"], $wiki_cache["title"], $wiki_cache["photos_url"], $wiki_cache["author_url"], $wiki_cache["license_url"]));
           $image = $_SESSION['images'][count($_SESSION['images']) - 1];
         }
       }      
