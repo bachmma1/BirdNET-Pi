@@ -101,7 +101,8 @@ if (get_included_files()[0] === __FILE__) {
   overflow-y: auto;overscroll-behavior:contain" id="attribution-dialog">
   <h1 id="modalHeading"></h1>
   <p id="modalText"></p>
-  <button onclick="hideDialog()">Close</button>
+  <button style="font-weight:bold;color:blue" onclick="hideDialog()">Close</button>
+  <button style="font-weight:bold;color:blue" onclick="if(confirm('Are you sure you want to blacklist this image?')) { blacklistImage(); }">Blacklist this image</button>
 </dialog>
 <script src="static/dialog-polyfill.js"></script>
 <script>
@@ -116,72 +117,104 @@ function hideDialog() {
   document.getElementById('attribution-dialog').close();
 }
 
-function setModalText(iter, title, text, authorlink) {
-  document.getElementById('modalHeading').innerHTML = "Photo "+iter+": \""+title+"\" Attribution";
-  document.getElementById('modalText').innerHTML = "<div style='white-space:nowrap'>Image link: <a target='_blank' href="+text+">"+text+"</a><br>Author link: <a target='_blank' href="+authorlink+">"+authorlink+"</a></div>";
-  showDialog();
+function blacklistImage() {
+    const match = last_photo_link.match(/\d+$/); // match one or more digits
+    const result = match ? match[0] : null; // extract the first match or return null if no match is found
+    console.log(last_photo_link)
+    const xhttp = new XMLHttpRequest();
+    xhttp.onload = function() {
+      if(this.responseText.length > 0) {
+       location.reload();
+      }
+    }
+    xhttp.open("GET", "overview.php?blacklistimage="+result, true);
+    xhttp.send();
+
+}
+
+function setModalText(iter, title, text, authorlink, photolink, licenseurl) {
+    document.getElementById('modalHeading').innerHTML = "Photo: \""+decodeURIComponent(title.replaceAll("+"," "))+"\" Attribution";
+    document.getElementById('modalText').innerHTML = "<div><img style='border-radius:5px;max-height: calc(100vh - 15rem);display: block;margin: 0 auto;' src='"+photolink+"'></div><br><div style='white-space:nowrap'>Image link: <a target='_blank' href="+text+">"+text+"</a><br>Author link: <a target='_blank' href="+authorlink+">"+authorlink+"</a><br>License URL: <a href="+licenseurl+" target='_blank'>"+licenseurl+"</a></div>";
+    last_photo_link = text;
+    showDialog();
 }
 </script>  
 <div class="column center">
 <?php if(!isset($_GET['species'])){
 ?><p class="centered">Choose a species to load images from Wikipedia.</p><?php
 };?>
-<?php if(isset($_GET['species'])){
+<?php if(isset($_GET['species'])) {
   $species = $_GET['species'];
   $iter=0;
   $config = get_config();
   $result3 = fetch_best_detection(htmlspecialchars_decode($_GET['species'], ENT_QUOTES));
-while($results=$result3->fetchArray(SQLITE3_ASSOC)){
-  $count = $results['COUNT(*)'];
-  $maxconf = round((float)round($results['MAX(Confidence)'],2) * 100 ) . '%';
-  $date = $results['Date'];
-  $time = $results['Time'];
-  $name = $results['Com_Name'];
-  $sciname = $results['Sci_Name'];
-  $dbsciname = preg_replace('/ /', '_', $sciname);
-  $comname = preg_replace('/ /', '_', $results['Com_Name']);
-  $comname = preg_replace('/\'/', '', $comname);
-  $linkname = preg_replace('/_/', '+', $dbsciname);
-  $filename = "/By_Date/".$date."/".$comname."/".$results['File_Name'];
-  $engname = get_com_en_name($sciname);
+  while($results=$result3->fetchArray(SQLITE3_ASSOC)){
+    $count = $results['COUNT(*)'];
+    $maxconf = round((float)round($results['MAX(Confidence)'],2) * 100 ) . '%';
+    $date = $results['Date'];
+    $time = $results['Time'];
+    $name = $results['Com_Name'];
+    $sciname = $results['Sci_Name'];
+    $dbsciname = preg_replace('/ /', '_', $sciname);
+    $comname = preg_replace('/ /', '_', $results['Com_Name']);
+    $comname = preg_replace('/\'/', '', $comname);
+    $linkname = preg_replace('/_/', '+', $dbsciname);
+    $filename = "/By_Date/".$date."/".$comname."/".$results['File_Name'];
+    $engname = get_com_en_name($sciname);
 
-  $info_url = get_info_url($results['Sci_Name']);
-  $url = $info_url['URL'];
-  $url_title = $info_url['TITLE'];
-  echo str_pad("<h3>$species</h3>
-    <table><tr>
-  <td class=\"relative\"><a target=\"_blank\" href=\"index.php?filename=".$results['File_Name']."\"><img title=\"Open in new tab\" class=\"copyimage\" width=25 src=\"images/copy.png\"></a><i>$sciname</i>
-  <a href=\"$url\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"$url_title\" src=\"images/info.png\" width=\"20\"></a>
-  <a href=\"https://wikipedia.org/wiki/$sciname\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a><br>
-  Occurrences: $count<br>
-  Max Confidence: $maxconf<br>
-  Best Recording: $date $time<br><br>
-  <video onplay='setLiveStreamVolume(0)' onended='setLiveStreamVolume(1)' onpause='setLiveStreamVolume(1)' controls poster=\"$filename.png\" title=\"$filename\"><source src=\"$filename\"></video></td>
-  </tr>
-    </table>
-  <p>Loading Images from Wikipedia</p>", '6096');
-  
-  echo "<script>document.getElementsByTagName(\"h3\")[0].scrollIntoView();</script>";
-  
-  ob_flush();
-  flush();
+    $info_url = get_info_url($results['Sci_Name']);
+    $url = $info_url['URL'];
+    $url_title = $info_url['TITLE'];
 
-  // Always use Wikipedia images
-  $wiki = new WikipediaImages();
-  $wiki_image = $wiki->get_image($sciname);
+    // Always use Wikipedia images
+    $wiki = new WikipediaImages();
+    $wiki_image = $wiki->get_image($sciname);
 
-  if (!empty($wiki_image['image_url'])) {
-    $iter++;
-    $modaltext = $wiki_image['page_url'];
-    $authorlink = $wiki_image['page_url'];
-    $imageurl = $wiki_image['image_url'];
-    echo "<span style='cursor:pointer;' onclick='setModalText(".$iter.",\"".$wiki_image['title']."\",\"".$modaltext."\", \"".$authorlink."\")'><img style='vertical-align:top' src=\"$imageurl\"></span>";
+    if (!empty($wiki_image['image_url'])) {
+      $iter++;
+      $wikiTitle = $wiki_image['title'];
+      $modaltext = $wiki_image['page_url'];
+      $authorlink = $wiki_image['page_url'];
+      $licenselink = $wiki_image['page_url'];
+      $imageurl = $wiki_image['image_url'];
+    }
+
+    echo "<h3>$species</h3>";
+    echo "<table>";
+    echo "<tr>";
+    echo "<td class=\"relative\">";
+    echo "<a target=\"_blank\" href=\"index.php?filename=".$results['File_Name']."\">";
+    echo "<img title=\"Open in new tab\" class=\"copyimage\" width=25 src=\"images/copy.png\">";
+    echo "</a>";
+    echo "<div class=\"centered_image_container\">";
+      if (!empty($imageurl)) {
+        echo "<img style='vertical-align:top' onclick='setModalText(".$iter.",\"".$wikiTitle."\",\"".$modaltext."\", \"".$authorlink."\", \"".$imageurl."\", \"".$licenselink."\")' src=\"$imageurl\" class=\"img1\">";
+      }
+      echo "<i>$sciname</i>";
+      echo "<a href=\"$url\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"$url_title\" src=\"images/info.png\" width=\"20\"></a>";
+      echo "<a href=\"https://wikipedia.org/wiki/$sciname\" target=\"_blank\"><img style=\"width: unset !important; display: inline; height: 1em; cursor: pointer;\" title=\"Wikipedia\" src=\"images/wiki.png\" width=\"20\"></a>";
+      echo "<br>";
+      echo "Occurrences: $count<br>";
+      echo "Max Confidence: $maxconf<br>";
+      echo "Best Recording: $date $time<br><br>";
+    echo "</div>";
+    echo "<div>";
+    echo "<video onplay='setLiveStreamVolume(0)' onended='setLiveStreamVolume(1)' onpause='setLiveStreamVolume(1)' controls poster=\"$filename.png\" title=\"$filename\"><source src=\"$filename\"></video>";
+    echo "</div>";
+    echo "</td>";
+    echo "</tr>";
+    echo "</table>";
+    echo "<script>document.getElementsByTagName(\"h3\")[0].scrollIntoView();</script>";
     
+    ob_flush();
+    flush();
+
+    if (!empty($wiki_image['image_url'])) {
     // Add a link to search for more images on Wikimedia Commons
-    $commons_search = "https://commons.wikimedia.org/w/index.php?search=" . urlencode($sciname . " OR " . $engname);
-    echo "<p><a href='$commons_search' target='_blank'>View more images on Wikimedia Commons</a></p>";
+      $commons_search = "https://commons.wikimedia.org/w/index.php?search=" . urlencode($sciname . " OR " . $engname);
+      echo "<p><a href='$commons_search' target='_blank'>View more images on Wikimedia Commons</a></p>";
+    }
   }
-}
 }
 ?>
 <?php if(isset($_GET['species'])){?>
@@ -198,20 +231,52 @@ while($results=$result3->fetchArray(SQLITE3_ASSOC)){
 $excludelines = [];
 while($results=$result->fetchArray(SQLITE3_ASSOC))
 {
-$comname = preg_replace('/ /', '_', $results['Com_Name']);
-$comname = preg_replace('/\'/', '', $comname);
-$filename = "/By_Date/".$results['Date']."/".$comname."/".$results['File_Name'];
+  $count = $results['Count'];
+  $maxconf = round((float)round($results['MaxConfidence'],2) * 100 ) . '%';
+  $date = $results['Date'];
+  $time = $results['Time'];
+  $name = $results['Com_Name'];
+  $comname = preg_replace('/ /', '_', $results['Com_Name']);
+  $comname = preg_replace('/\'/', '', $comname);
+  $filename = "/By_Date/".$results['Date']."/".$comname."/".$results['File_Name'];
+  $sciname = $results['Sci_Name'];
 
-array_push($excludelines, $results['Date']."/".$comname."/".$results['File_Name']);
-array_push($excludelines, $results['Date']."/".$comname."/".$results['File_Name'].".png");
-?>
-      <tr>
-      <td class="relative"><a target="_blank" href="index.php?filename=<?php echo $results['File_Name']; ?>"><img title="Open in new tab" class="copyimage" width=25 src="images/copy.png"></a>
-        <button type="submit" name="species" value="<?php echo $results['Com_Name'];?>"><?php echo $results['Com_Name'];?></button><br><b>Occurrences:</b> <?php echo $results['Count'];?><br>
-      <b>Max Confidence:</b> <?php echo $percent = round((float)round($results['MaxConfidence'],2) * 100 ) . '%';?><br>
-      <b>Best Recording:</b> <?php echo $results['Date']." ".$results['Time'];?><br><video onplay='setLiveStreamVolume(0)' onended='setLiveStreamVolume(1)' onpause='setLiveStreamVolume(1)' controls poster="<?php echo $filename.".png";?>" preload="none" title="<?php echo $filename;?>"><source src="<?php echo $filename;?>" type="audio/mp3"></video></td>
-      </tr>
-<?php
+  // Always use Wikipedia images
+      $wiki = new WikipediaImages();
+      $wiki_image = $wiki->get_image($sciname);
+
+      if (!empty($wiki_image['image_url'])) {
+        $iter++;
+        $wikiTitle = $wiki_image['title'];
+        $modaltext = $wiki_image['page_url'];
+        $authorlink = $wiki_image['page_url'];
+        $licenselink = $wiki_image['page_url'];
+        $imageurl = $wiki_image['image_url'];
+      }
+
+  array_push($excludelines, $results['Date']."/".$comname."/".$results['File_Name']);
+  array_push($excludelines, $results['Date']."/".$comname."/".$results['File_Name'].".png");
+
+  echo "<tr>";
+  echo "<td class=\"relative\">";
+  echo "<a target=\"_blank\" href=\"index.php?filename=".$results['File_Name']."\">";
+  echo "<img title=\"Open in new tab\" class=\"copyimage\" width=25 src=\"images/copy.png\">";
+  echo "</a>";
+  echo "<div class=\"centered_image_container\">";
+    if (!empty($imageurl)) {
+      echo "<img style='vertical-align:top' onclick='setModalText(".$iter.",\"".$wikiTitle."\",\"".$modaltext."\", \"".$authorlink."\", \"".$imageurl."\", \"".$licenselink."\")' src=\"$imageurl\" class=\"img1\">";
+    }
+    echo "<button type=\"submit\" name=\"species\" value=\"".$results['Com_Name']."\">$comname</i>";
+    echo "<br>";
+    echo "Occurrences: $count<br>";
+    echo "Max Confidence: $maxconf<br>";
+    echo "Best Recording: $date $time<br><br>";
+  echo "</div>";
+  echo "<div>";
+  echo "<video onplay='setLiveStreamVolume(0)' onended='setLiveStreamVolume(1)' onpause='setLiveStreamVolume(1)' controls poster=\"$filename.png\" title=\"$filename\"><source src=\"$filename\"></video>";
+  echo "</div>";
+  echo "</td>";
+  echo "</tr>";
 }
 
 $file = file_get_contents($home."/BirdNET-Pi/scripts/disk_check_exclude.txt");
