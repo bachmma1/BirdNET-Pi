@@ -109,6 +109,12 @@ APPRISE_MINIMUM_SECONDS_BETWEEN_NOTIFICATIONS_PER_SPECIES=0
 APPRISE_ONLY_NOTIFY_SPECIES_NAMES=""
 APPRISE_ONLY_NOTIFY_SPECIES_NAMES_2=""
 
+
+#----------------------  Bird Images Configuration -----------------------#
+## Bird images are automatically fetched from Wikimedia if no Flickr API key is set.
+## For wikimedia - no API key is required.
+## The following settings are kept for backward compatibility.
+
 #----------------------  Flickr Images API Configuration -----------------------#
 ## If FLICKR_API_KEY is set, the web interface will try and display bird images 
 ## for each detection. If FLICKR_FILTER_EMAIL is set, the images will only be 

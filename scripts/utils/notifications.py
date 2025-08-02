@@ -123,6 +123,38 @@ def sendAppriseNotifications(species, confidence, confidencepct, path,
                     image_url = ""
             else:
                 image_url = flickr_images[comName]
+        else: 
+            if comName not in flickr_images:
+                try:
+                    # Use Wikipedia API instead of Flickr
+                    headers = {'User-Agent': 'Python_BirdNET-Pi/1.0'}
+
+                    # Try scientific name first
+                    sci_name_url = sciName.replace(' ', '_')
+                    url = f'https://en.wikipedia.org/api/rest_v1/page/summary/{sci_name_url}'
+                    resp = requests.get(url=url, headers=headers, timeout=10)
+
+                    # If scientific name fails, try common name
+                    if resp.status_code != 200:
+                        com_name_url = comName.replace(' ', '_')
+                        url = f'https://en.wikipedia.org/api/rest_v1/page/summary/{com_name_url}'
+                        resp = requests.get(url=url, headers=headers, timeout=10)
+
+                    resp.encoding = "utf-8"
+                    data = resp.json()
+
+                    # Check if we have an image
+                    if resp.status_code == 200 and 'originalimage' in data and 'source' in data['originalimage']:
+                        image_url = data['originalimage']['source']
+                    else:
+                        image_url = ""
+
+                    flickr_images[comName] = image_url
+                except Exception as e:
+                    print("IMAGE API ERROR: "+str(e))
+                    image_url = ""
+            else:
+                image_url = flickr_images[comName]
 
         if settings_dict.get('APPRISE_NOTIFY_EACH_DETECTION') == "1":
             notify_body = render_template(body, "detection")

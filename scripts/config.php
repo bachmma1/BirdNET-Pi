@@ -223,8 +223,12 @@ if(isset($_GET['sendtest']) && $_GET['sendtest'] == "true") {
 
   $attach="";
   $exampleimage = "https://live.staticflickr.com/7430/27545810581_8bfa8289a3_c.jpg";
+  $exampleimageWikimedia = "https://live.staticflickr.com/7430/27545810581_8bfa8289a3_c.jpg";
   if (strpos($body, '$flickrimage') !== false) {
       $attach = "--attach ".$exampleimage;
+  }
+   if (strpos($body, '$wikimediaimage') !== false) {
+      $attach = "--attach ".$exampleimageWikimedia;
   }
   if (strpos($body, '{') === false) {
       $exampleimage = "";
@@ -245,6 +249,7 @@ if(isset($_GET['sendtest']) && $_GET['sendtest'] == "true") {
   $title = str_replace("\$sens", $sens, $title);
   $title = str_replace("\$overlap", $overlap, $title);
   $title = str_replace("\$flickrimage", $exampleimage, $title);
+  $title = str_replace("\$wikimediaimage", $exampleimageWikimedia, $title);
   $title = str_replace("\$reason", 'Test message', $title);
 
   $body = str_replace("\$sciname", $sciname, $body);
@@ -262,6 +267,7 @@ if(isset($_GET['sendtest']) && $_GET['sendtest'] == "true") {
   $body = str_replace("\$sens", $sens, $body);
   $body = str_replace("\$overlap", $overlap, $body);
   $body = str_replace("\$flickrimage", $exampleimage, $body);
+  $body = str_replace("\$wikimediaimage", $exampleimageWikimedia, $body);
   $body = str_replace("\$reason", 'Test message', $body);
 
   $temp = tmpfile();
@@ -522,6 +528,8 @@ https://discordapp.com/api/webhooks/{WebhookID}/{WebhookToken}
       <dd>Overlap set in "Advanced Settings"</dd>
       <dt>$flickrimage</dt>
       <dd>A preview image of the detected species from Flickr. Set your API key below.</dd>
+      <dt>$wikimediaimage</dt>
+      <dd>A preview image of the detected species from Wikimedia. No API key needed.</dd>
       <dt>$reason</dt>
       <dd>The reason a notification was sent</dd>
       </dl>
@@ -552,14 +560,31 @@ https://discordapp.com/api/webhooks/{WebhookID}/{WebhookToken}
       <button type="button" class="testbtn" onclick="sendTestNotification(this)">Send Test Notification</button><br>
       <span id="testsuccessmsg"></span>
       </td></tr></table><br>
-      <table class="settingstable"><tr><td>
-      <h2>Bird Photos from Flickr</h2>
-      <label for="flickr_api_key">Flickr API Key: </label>
-      <input name="flickr_api_key" type="text" size="32" value="<?php print($config['FLICKR_API_KEY']);?>"/><br>
-      <label for="flickr_filter_email">Only search photos from this Flickr user: </label>
-      <input name="flickr_filter_email" type="email" size="24" placeholder="myflickraccount@gmail.com" value="<?php print($config['FLICKR_FILTER_EMAIL']);?>"/><br>
-      <p>Set your Flickr API key to enable the display of bird images next to detections. <a target="_blank" href="https://www.flickr.com/services/api/misc.api_keys.html">Get your free key here.</a></p>
-      </td></tr></table><br>
+      <table class="settingstable">
+        <tr>
+          <td>
+          <h2>Bird Photos</h2>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3>from Flickr</h3>
+            <p>If NO Flickr api key is set. The wikimedia workflow kicks in automatically.
+            <label for="flickr_api_key">Flickr API Key: </label>
+            <input name="flickr_api_key" type="text" size="32" value="<?php print($config['FLICKR_API_KEY']);?>"/><br>
+            <label for="flickr_filter_email">Only search photos from this Flickr user: </label>
+            <input name="flickr_filter_email" type="email" size="24" placeholder="myflickraccount@gmail.com" value="<?php print($config['FLICKR_FILTER_EMAIL']);?>"/><br>
+            <p>Set your Flickr API key to enable the display of bird images next to detections. <a target="_blank" href="https://www.flickr.com/services/api/misc.api_keys.html">Get your free key here.</a></p>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <h3>from Wikimedia</h3>
+            <p>Bird images are automatically fetched from Wikipedia. No API key is required.</p>
+          </td>
+        </tr>
+      </table>
+      <br>
       <table class="settingstable"><tr><td>
       <h2>Localization</h2>
       <label for="language">Database Language: </label>

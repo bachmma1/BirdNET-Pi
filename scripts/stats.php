@@ -4,7 +4,12 @@
 $_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
 $_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
 
-ini_set('user_agent', 'PHP_Flickr/1.0');
+if (!empty($config["FLICKR_API_KEY"])) {
+  ini_set('user_agent', 'PHP_Flickr/1.0');
+}
+else {
+  ini_set('user_agent', 'BirdNET-Pi/1.0');
+}
 error_reporting(E_ERROR);
 ini_set('display_errors', 0);
 require_once 'scripts/common.php';
@@ -124,7 +129,7 @@ function setModalText(iter, title, text, authorlink) {
 </script>  
 <div class="column center">
 <?php if(!isset($_GET['species'])){
-?><p class="centered">Choose a species to load images from Flickr.</p>
+?><p class="centered">Choose a species to load images.</p>
 <?php
 };?>
 <?php if(isset($_GET['species'])){
@@ -160,14 +165,14 @@ while($results=$result3->fetchArray(SQLITE3_ASSOC)){
   <video onplay='setLiveStreamVolume(0)' onended='setLiveStreamVolume(1)' onpause='setLiveStreamVolume(1)' controls poster=\"$filename.png\" title=\"$filename\"><source src=\"$filename\"></video></td>
   </tr>
     </table>
-  <p>Loading Images from Flickr</p>", '6096');
+  <p>Loading Images</p>", '6096');
   
   echo "<script>document.getElementsByTagName(\"h3\")[0].scrollIntoView();</script>";
   
   ob_flush();
   flush();
 
-  if (! empty($config["FLICKR_API_KEY"])) {
+  if (!empty($config["FLICKR_API_KEY"])) {
     $flickrjson = json_decode(file_get_contents("https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=".$config["FLICKR_API_KEY"]."&text=\"".str_replace(' ', '%20', $engname)."\"&license=2%2C3%2C4%2C5%2C6%2C9&sort=relevance&per_page=15&format=json&nojsoncallback=1"), true)["photos"]["photo"];
 
     foreach ($flickrjson as $val) {
@@ -179,6 +184,22 @@ while($results=$result3->fetchArray(SQLITE3_ASSOC)){
       echo "<span style='cursor:pointer;' onclick='setModalText(".$iter.",\"".$val["title"]."\",\"".$modaltext."\", \"".$authorlink."\")'><img style='vertical-align:top' src=\"$imageurl\"></span>";
     }
   }
+  else {
+    // Use Wikimedia images
+    $wiki = new WikimediaImages();
+    $wiki_image = $wiki->get_image($sciname);
+
+    if (!empty($wiki_image['image_url'])) {
+      $iter++;
+      $modaltext = $wiki_image['page_url'];
+      $authorlink = $wiki_image['page_url'];
+      $imageurl = $wiki_image['image_url'];
+      echo "<span style='cursor:pointer;' onclick='setModalText(".$iter.",\"".$wiki_image['title']."\",\"".$modaltext."\", \"".$authorlink."\")'><img style='vertical-align:top' src=\"$imageurl\"></span>";
+
+      // Add a link to search for more images on Wikimedia Commons
+      $commons_search = "https://commons.wikimedia.org/w/index.php?search=" . urlencode($sciname . " OR " . $engname);
+      echo "<p><a href='$commons_search' target='_blank'>View more images on Wikimedia Commons</a></p>";
+    }
 }
 }
 ?>
