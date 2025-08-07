@@ -55,6 +55,7 @@ if(isset($_GET["latitude"])){
   $site_name = str_replace('"', "", $site_name);
   $site_name = str_replace('\'', "", $site_name);
   $birdweather_id = $_GET["birdweather_id"];
+  $birdweather_send_audio = $_GET["birdweather_send_audio"];
   $apprise_input = $_GET['apprise_input'];
   $apprise_notification_title = $_GET['apprise_notification_title'];
   $apprise_notification_body = $_GET['apprise_notification_body'];
@@ -136,6 +137,7 @@ if(isset($_GET["latitude"])){
   $contents = preg_replace("/LATITUDE=.*/", "LATITUDE=$latitude", $contents);
   $contents = preg_replace("/LONGITUDE=.*/", "LONGITUDE=$longitude", $contents);
   $contents = preg_replace("/BIRDWEATHER_ID=.*/", "BIRDWEATHER_ID=$birdweather_id", $contents);
+  $contents = preg_replace("/BIRDWEATHER_SEND_AUDIO=.*/", "BIRDWEATHER_SEND_AUDIO=$birdweather_send_audio", $contents);
   $contents = preg_replace("/APPRISE_NOTIFICATION_TITLE=.*/", "APPRISE_NOTIFICATION_TITLE=\"$apprise_notification_title\"", $contents);
   $contents = preg_replace("/APPRISE_NOTIFICATION_BODY=.*/", "APPRISE_NOTIFICATION_BODY=\"$apprise_notification_body\"", $contents);
   $contents = preg_replace("/APPRISE_NOTIFY_EACH_DETECTION=.*/", "APPRISE_NOTIFY_EACH_DETECTION=$apprise_notify_each_detection", $contents);
@@ -481,6 +483,14 @@ function runProcess() {
         Make sure that the Latitude and Longitude match what is in your BirdNET-Pi configuration.
         <br><br>
         <dt>NOTE - by using your BirdWeather ID - you are consenting to sharing your soundscapes and detections with BirdWeather</dt></p>
+        <label>Send audio:</label><br>
+        <input type="radio" id="send_audio_yes" name="birdweather_send_audio" value="true"
+          <?php if (!empty($config['birdweather_send_audio']) && $config['birdweather_send_audio'] === 'true') echo 'checked'; ?>>
+        <label for="send_audio_yes">Yes</label><br>
+
+        <input type="radio" id="send_audio_no" name="birdweather_send_audio" value="false"
+          <?php if (empty($config['birdweather_send_audio']) || $config['birdweather_send_audio'] !== 'true') echo 'checked'; ?>>
+        <label for="send_audio_no">No</label><br>
       </td></tr></table><br>
       <table class="settingstable" style="width:100%"><tr><td>
       <h2>Notifications</h2>
