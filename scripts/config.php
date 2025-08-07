@@ -483,15 +483,18 @@ function runProcess() {
         Make sure that the Latitude and Longitude match what is in your BirdNET-Pi configuration.
         <br><br>
         <dt>NOTE - by using your BirdWeather ID - you are consenting to sharing your soundscapes and detections with BirdWeather</dt></p>
-        <label>Send audio:</label><br>
+      </td></tr>
+      <tr><td>
+      <label>Send audio:</label><br>
         <input type="radio" id="send_audio_yes" name="birdweather_send_audio" value="true"
-          <?php if (!empty($config['birdweather_send_audio']) && $config['birdweather_send_audio'] === 'true') echo 'checked'; ?>>
+          <?php if (!empty($config['BIRDWEATHER_SEND_AUDIO']) && $config['BIRDWEATHER_SEND_AUDIO'] === 'true') echo 'checked'; ?>>
         <label for="send_audio_yes">Yes</label><br>
 
         <input type="radio" id="send_audio_no" name="birdweather_send_audio" value="false"
-          <?php if (empty($config['birdweather_send_audio']) || $config['birdweather_send_audio'] !== 'true') echo 'checked'; ?>>
+          <?php if (empty($config['BIRDWEATHER_SEND_AUDIO']) || $config['BIRDWEATHER_SEND_AUDIO'] !== 'true') echo 'checked'; ?>>
         <label for="send_audio_no">No</label><br>
-      </td></tr></table><br>
+      </td></tr>
+    </table><br>
       <table class="settingstable" style="width:100%"><tr><td>
       <h2>Notifications</h2>
       <p><a target="_blank" href="https://github.com/caronc/apprise/wiki">Apprise Notifications</a> can be setup and enabled for 90+ notification services. Each service should be on its own line.</p>

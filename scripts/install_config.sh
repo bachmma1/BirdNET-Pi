@@ -52,6 +52,7 @@ DATA_MODEL_VERSION=1
 #__________________also act as a BirdWeather listening station_________________#
 
 BIRDWEATHER_ID=
+BIRDWEATHER_SEND_AUDIO=true
 
 #-----------------------  Web Interface User Password  ------------------------#
 #____________________The variable below sets the 'birdnet'_____________________#
